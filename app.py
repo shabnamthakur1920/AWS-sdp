@@ -51,12 +51,46 @@ def allowed_image(filename):
 def allowed_resume(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_RESUME_EXTENSIONS
 
-
 def upload_to_s3(file, folder):
-    key = f"{folder}/{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-    content_type = file.content_type or 'application/octet-stream'
-    s3.upload_fileobj(file, S3_BUCKET, key, ExtraArgs={'ContentType': content_type})
-    return key
+    try:
+        # Validate file
+        if file is None:
+            return None
+
+        if not file.filename:
+            return None
+
+        filename = secure_filename(file.filename)
+
+        key = f"{folder}/{uuid.uuid4().hex}_{filename}"
+
+        # Handle missing content type
+        content_type = getattr(file, 'content_type', None)
+        if not content_type:
+            content_type = 'application/octet-stream'
+
+        print(f"Uploading file: {filename}")
+        print(f"Content-Type: {content_type}")
+        print(f"S3 Key: {key}")
+
+        # Reset file pointer
+        file.seek(0)
+
+        s3.upload_fileobj(
+            file,
+            S3_BUCKET,
+            key,
+            ExtraArgs={
+                'ContentType': content_type
+            }
+        )
+
+        print("Upload successful")
+        return key
+
+    except Exception as e:
+        print(f"S3 Upload Error: {e}")
+        raise
 
 
 def presigned_url(key, expiry=3600):
@@ -115,31 +149,73 @@ def index():
 
 
 @app.route('/add', methods=['GET', 'POST'])
+@app.route('/add', methods=['GET', 'POST'])
 def add_student():
     if request.method == 'POST':
-        name = request.form['name']
-        age = request.form['age']
-        grade = request.form['grade']
+        try:
+            name = request.form['name']
+            age = request.form['age']
+            grade = request.form['grade']
 
-        profile_image_key = None
-        resume_key = None
+            profile_image_key = None
+            resume_key = None
 
-        file = request.files.get('profile_image')
-        if file and file.filename and allowed_image(file.filename):
-            profile_image_key = upload_to_s3(file, 'profile-images')
+            profile_file = request.files.get('profile_image')
 
-        file = request.files.get('resume')
-        if file and file.filename and allowed_resume(file.filename):
-            resume_key = upload_to_s3(file, 'resumes')
+            if profile_file:
+                print("Profile File:", profile_file.filename)
+                print("Profile Content-Type:", profile_file.content_type)
 
-        cursor = mysql.connection.cursor()
-        cursor.execute(
-            "INSERT INTO students (name, age, grade, profile_image, resume) VALUES (%s, %s, %s, %s, %s)",
-            (name, age, grade, profile_image_key, resume_key)
-        )
-        mysql.connection.commit()
-        cursor.close()
-        return redirect(url_for('index'))
+            if (
+                profile_file and
+                profile_file.filename and
+                allowed_image(profile_file.filename)
+            ):
+                profile_image_key = upload_to_s3(
+                    profile_file,
+                    'profile-images'
+                )
+
+            resume_file = request.files.get('resume')
+
+            if resume_file:
+                print("Resume File:", resume_file.filename)
+                print("Resume Content-Type:", resume_file.content_type)
+
+            if (
+                resume_file and
+                resume_file.filename and
+                allowed_resume(resume_file.filename)
+            ):
+                resume_key = upload_to_s3(
+                    resume_file,
+                    'resumes'
+                )
+
+            cursor = mysql.connection.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO students
+                (name, age, grade, profile_image, resume)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (
+                    name,
+                    age,
+                    grade,
+                    profile_image_key,
+                    resume_key
+                )
+            )
+
+            mysql.connection.commit()
+            cursor.close()
+
+            return redirect(url_for('index'))
+
+        except Exception as e:
+            return f"Error: {str(e)}", 500
 
     return render_template('add.html')
 
