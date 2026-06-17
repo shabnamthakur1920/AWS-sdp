@@ -1,4 +1,4 @@
 Flask
 Flask-MySQLdb
 python-dotenv
-mysql-client
+boto3

@@ -17,23 +17,46 @@
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
-                    <th class="ps-4">Name</th>
+                    <th class="ps-4">Profile</th>
+                    <th>Name</th>
                     <th>Age</th>
                     <th>Grade</th>
+                    <th>Resume</th>
                     <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for student in students %}
                 <tr>
-                    <td class="ps-4 fw-medium">{{ student.name }}</td>
+                    <td class="ps-4">
+                        {% if student.profile_image_url %}
+                        <img src="{{ student.profile_image_url }}" alt="{{ student.name }}"
+                             class="rounded-circle" width="42" height="42" style="object-fit:cover;">
+                        {% else %}
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary"
+                              style="width:42px;height:42px;">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-medium">{{ student.name }}</td>
                     <td>{{ student.age }}</td>
                     <td><span class="badge-grade">{{ student.grade }}</span></td>
+                    <td>
+                        {% if student.resume_url %}
+                        <a href="{{ student.resume_url }}" target="_blank" class="btn btn-sm btn-outline-secondary btn-icon">
+                            <i class="bi bi-file-earmark-text"></i> View
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
                     <td class="text-end pe-4">
                         <a href="{{ url_for('edit_student', id=student.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="{{ url_for('delete_student', id=student.id) }}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete {{ student.name }}?');">
+                        <a href="{{ url_for('delete_student', id=student.id) }}" class="btn btn-sm btn-outline-danger" title="Delete"
+                           onclick="return confirm('Delete {{ student.name }}?');">
                             <i class="bi bi-trash"></i>
                         </a>
                     </td>

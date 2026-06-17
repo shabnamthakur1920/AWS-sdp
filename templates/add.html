@@ -5,7 +5,7 @@
     <div class="card card-elevated">
         <div class="card-body p-4 p-md-5">
             <h1 class="h4 mb-4">Add Student</h1>
-            <form action="{{ url_for('add_student') }}" method="POST">
+            <form action="{{ url_for('add_student') }}" method="POST" enctype="multipart/form-data">
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
                     <label for="name">Name</label>
@@ -18,6 +18,26 @@
                     <input type="text" class="form-control" id="grade" name="grade" placeholder="Grade" required>
                     <label for="grade">Grade</label>
                 </div>
+
+                <hr class="my-4">
+
+                <div class="mb-3">
+                    <label for="profile_image" class="form-label fw-medium">
+                        <i class="bi bi-image me-1"></i> Profile Image
+                        <span class="text-muted fw-normal">(PNG, JPG, JPEG, GIF, WEBP)</span>
+                    </label>
+                    <input type="file" class="form-control" id="profile_image" name="profile_image"
+                           accept=".png,.jpg,.jpeg,.gif,.webp">
+                </div>
+                <div class="mb-4">
+                    <label for="resume" class="form-label fw-medium">
+                        <i class="bi bi-file-earmark-text me-1"></i> Resume
+                        <span class="text-muted fw-normal">(PDF, DOC, DOCX)</span>
+                    </label>
+                    <input type="file" class="form-control" id="resume" name="resume"
+                           accept=".pdf,.doc,.docx">
+                </div>
+
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary btn-icon">

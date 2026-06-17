@@ -5,19 +5,57 @@
     <div class="card card-elevated">
         <div class="card-body p-4 p-md-5">
             <h1 class="h4 mb-4">Edit Student</h1>
-            <form action="{{ url_for('edit_student', id=student.id) }}" method="POST">
+            <form action="{{ url_for('edit_student', id=student.id) }}" method="POST" enctype="multipart/form-data">
+
+                {# Pass existing S3 keys so they're preserved if no new file is chosen #}
+                <input type="hidden" name="existing_profile_image" value="{{ student.profile_image or '' }}">
+                <input type="hidden" name="existing_resume" value="{{ student.resume or '' }}">
+
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="name" name="name" placeholder="Name" value="{{ student.name }}" required>
+                    <input type="text" class="form-control" id="name" name="name"
+                           placeholder="Name" value="{{ student.name }}" required>
                     <label for="name">Name</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="number" class="form-control" id="age" name="age" placeholder="Age" value="{{ student.age }}" required>
+                    <input type="number" class="form-control" id="age" name="age"
+                           placeholder="Age" value="{{ student.age }}" required>
                     <label for="age">Age</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="text" class="form-control" id="grade" name="grade" placeholder="Grade" value="{{ student.grade }}" required>
+                    <input type="text" class="form-control" id="grade" name="grade"
+                           placeholder="Grade" value="{{ student.grade }}" required>
                     <label for="grade">Grade</label>
                 </div>
+
+                <hr class="my-4">
+
+                <div class="mb-3">
+                    <label for="profile_image" class="form-label fw-medium">
+                        <i class="bi bi-image me-1"></i> Profile Image
+                        <span class="text-muted fw-normal">(PNG, JPG, JPEG, GIF, WEBP)</span>
+                    </label>
+                    {% if student.profile_image %}
+                    <p class="small text-success mb-2">
+                        <i class="bi bi-check-circle me-1"></i> Image already uploaded — upload a new one to replace it.
+                    </p>
+                    {% endif %}
+                    <input type="file" class="form-control" id="profile_image" name="profile_image"
+                           accept=".png,.jpg,.jpeg,.gif,.webp">
+                </div>
+                <div class="mb-4">
+                    <label for="resume" class="form-label fw-medium">
+                        <i class="bi bi-file-earmark-text me-1"></i> Resume
+                        <span class="text-muted fw-normal">(PDF, DOC, DOCX)</span>
+                    </label>
+                    {% if student.resume %}
+                    <p class="small text-success mb-2">
+                        <i class="bi bi-check-circle me-1"></i> Resume already uploaded — upload a new one to replace it.
+                    </p>
+                    {% endif %}
+                    <input type="file" class="form-control" id="resume" name="resume"
+                           accept=".pdf,.doc,.docx">
+                </div>
+
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary btn-icon">
