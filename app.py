@@ -51,47 +51,31 @@ def allowed_image(filename):
 def allowed_resume(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_RESUME_EXTENSIONS
 
+import traceback
+
 def upload_to_s3(file, folder):
     try:
-        # Validate file
-        if file is None:
-            return None
-
-        if not file.filename:
-            return None
-
         filename = secure_filename(file.filename)
-
         key = f"{folder}/{uuid.uuid4().hex}_{filename}"
 
-        # Handle missing content type
-        content_type = getattr(file, 'content_type', None)
-        if not content_type:
-            content_type = 'application/octet-stream'
-
-        print(f"Uploading file: {filename}")
-        print(f"Content-Type: {content_type}")
-        print(f"S3 Key: {key}")
-
-        # Reset file pointer
-        file.seek(0)
+        print("S3_BUCKET =", S3_BUCKET)
+        print("AWS_REGION =", AWS_REGION)
 
         s3.upload_fileobj(
             file,
             S3_BUCKET,
             key,
             ExtraArgs={
-                'ContentType': content_type
+                "ContentType": file.content_type or "application/octet-stream"
             }
         )
 
-        print("Upload successful")
         return key
 
     except Exception as e:
-        print(f"S3 Upload Error: {e}")
+        print("FULL ERROR:")
+        traceback.print_exc()
         raise
-
 
 def presigned_url(key, expiry=3600):
     if not key:
